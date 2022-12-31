@@ -1,1 +1,6 @@
 */__pycache__/
+data
+fig
+stan_model/pkl
+stan_model/model_fit
+human_data
