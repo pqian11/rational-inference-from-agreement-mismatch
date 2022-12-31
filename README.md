@@ -58,12 +58,12 @@ Visualize the effect of prior by comparing the estimated prior of the observed s
 python src/plot_verb_correction_freq_against_prior.py
 ```
 
-Visualize overall comparison between human correction preferences and model correction preferences:
+Visualize overall comparison between human correction preferences and model correction preferences.
 ```
 python src/plot_model_human_comparison.py
 ```
 
-Visualize and compare error likelihood estimated from language comprehension tasks (free-form editing in Study I and II) and language production tasks:
+Visualize and compare error likelihood estimated from language comprehension tasks (free-form editing in Study I and II) and language production tasks.
 ```
 python src/plot_error_lh.py
 ```
