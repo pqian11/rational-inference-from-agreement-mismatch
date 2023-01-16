@@ -114,7 +114,7 @@ model_names = ['bayesian_model_prior-only_temperature_with_random_effect',
                 'bayesian_model_context-general_lh_temperature_with_random_effect', 
                 'bayesian_model_full_temperature_with_random_effect']
 
-pretty_model_names = ['Prior only', 'Likelihood only', 'Context-insensitive', 'Full']
+pretty_model_names = ['Prior only', 'Likelihood only', 'Context-insensitive', 'Full model']
 
 e_types = ['subj', 'verb', 'subj+local', 'verb+local']
 e_type2idx = dict([(e_type, i) for i, e_type in enumerate(e_types)])
