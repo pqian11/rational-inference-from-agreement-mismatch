@@ -31,7 +31,7 @@ def plot_model_human_comparison_across_two_studies(model_fit_all, observed_freqs
     n_cond = 4
     n_e_type = 4
     markersize = 5
-    alpha = 0.8
+    alpha = 0.65
 
     colors = [plt.cm.tab10(i) for i in range(4)]
     m_shapes = ['^', 'o', 's', 'x']
@@ -167,7 +167,6 @@ def plot_model_human_comparison_with_combined_data(model_fit_all, observed_freqs
 
         pretty_model_name = pretty_model_names[model_idx]
 
-        # if exp_idx == 0:
         ax.set_title(pretty_model_name)
         text_patch = ax.text(0.56, 0.03, r'MSE$=${:.3f}'.format(mse)+'\n'+r'$\rho=${:.3f}{}'.format(rho, sig_level_stars), transform=ax.transAxes)   
         text_patch.set_bbox(dict(facecolor='white', alpha=0.25, edgecolor='none'))
