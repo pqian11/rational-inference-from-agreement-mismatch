@@ -77,4 +77,4 @@ python src/plot_error_lh.py
 ```
 
 ## Statistical tests
-`R_script` folder contains `R` script for linear mixed-effect model analysis.
+`R_script` folder contains `R` script for mixed-effect regression analysis.
