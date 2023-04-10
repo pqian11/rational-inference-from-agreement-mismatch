@@ -3,7 +3,7 @@
 This repository accompanies a study of how humans correct subject-verb number agreement mismatch in English.
 
 ## Environment
-Use `pystan_environment.yml` to install the `conda` environment. Run the following code to download the `nltk` word tokenizer.
+Use `stan_env.yml` to install the `conda` environment. Run the following code to download the `nltk` word tokenizer.
 ```
 import nltk
 nltk.download('punkt')
@@ -11,10 +11,8 @@ nltk.download('punkt')
 Download the data folder and put it in the root of the repository. Create the following directory structure from the root folder:
 ```
 mkdir -p fig
-mkdir -p stan_model/pkl
 mkdir -p stan_model/model_fit
 ```
-To support maximal reproducibility of the computational modelling results, the definition file `script/stan_env.def` specifies the Singularity container that was used for fitting the Stan models.
 
 ## Data analysis
 Estimate prior from norming task data.
@@ -32,9 +30,19 @@ Analyze human language production experiments from [Ryskin et al. (2021)](https:
 python src/analyze_language_production_exps.py
 ```
 
-Bayesian estimation of the model parameters based on human data. Models are fitted on data from two studies respectively. `${MODEL_TYPE}` can take the value of `prior-only`, `lh-only`, `context-general_lh` and `full` , which corresponds to different versions of the ablated models as well as the full model described in the paper. Adding `--do_compile`  recompiles the `stan` model file. If a model file is not modified, the `--do_compile` flag can be omitted to load previously saved compiled model.
+Run a meta-analysis on data from the language production studies.
 ```
-python fit_model_with_random_effects.py -m ${MODEL_TYPE} --do_compile
+python src/meta_analysis.py
+```
+
+Bayesian estimation of the model parameters based on human data. Models are fitted on data from two studies respectively. `${MODEL_TYPE}` can take the value of `prior-only`, `lh-only`, `context-general_lh` and `full` , which corresponds to different versions of the ablated models as well as the full model described in the paper.
+```
+python src/fit_model_with_random_effects.py -m ${MODEL_TYPE}
+```
+
+Model fitting on combined data from both Study I&II.
+```
+python src/fit_model_with_random_effects_on_combined_data.py -m ${MODEL_TYPE}
 ```
 
 Display summary statistics of the Bayesian estimation results for selected model parameters and visualize estimated error likelihood parameters for  `lh-only`, `context-general_lh` and `full`  models.
@@ -44,7 +52,7 @@ python src/model_rs_analysis.py
 
 Run maximum likelihood estimation (MLE) and display likelihood ratio test results between `context-general_lh` and `full`  models.  `--do_compile` flag can be omitted to load previously compiled model.
 ```
-python src/get_lrt_rs.py --do_compile
+python src/get_lrt_rs.py
 ```
 
 ## Visualization
