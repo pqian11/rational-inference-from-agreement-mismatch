@@ -6,11 +6,12 @@ import matplotlib.lines as mlines
 rcParams['font.family'] = 'Arial'
 
 
-def plot_inferred_params_posterior(summaries, figsize=(5.5, 4), savepath=None):
-    study_names = ['Study I', 'Study II']
+def plot_inferred_params_posterior(summaries, study_names=None, figsize=(5.5, 4), savepath=None):
     condition_names = ['SS_', 'SP_', 'PS_', 'PP_']
     lh_params_posterior_ci_all = []
-    n_exp = len(study_names)
+    n_exp = len(summaries)
+    if study_names:
+        assert(len(summaries) == len(study_names))
 
     for i in range(n_exp):
         lh_params_posterior_ci = []
@@ -40,7 +41,9 @@ def plot_inferred_params_posterior(summaries, figsize=(5.5, 4), savepath=None):
 
         ax.set_yticks(np.arange(16))
         ax.set_xlabel('Error Frequency')
-        ax.set_title(study_names[ax_idx])
+
+        if study_names:
+            ax.set_title(study_names[ax_idx])
         
         if ax_idx == 0:
             yticklabels = []
@@ -70,10 +73,9 @@ model_names = ['bayesian_model_prior-only_temperature_with_random_effect',
                 'bayesian_model_full_temperature_with_random_effect'
                 ]
 
-exp_names = ['exp1', 'exp2']
+exp_names = ['exp1', 'exp2', 'exp_combined']
 
 for model_name in model_names:
-    model_fit_all = []
     model_summary_all = []
     for exp_name in exp_names:
         model_fit_path = "stan_model/model_fit/{}_{}_model_fit.nc".format(exp_name, model_name)
@@ -94,9 +96,9 @@ for model_name in model_names:
         print(summary)
         print()
 
-        model_fit_all.append(model_fit)
         model_summary_all.append(summary)
 
+    # Plot inferred error likelihood parameters for Study I and Study II separately.
     if not model_name.startswith('bayesian_model_prior-only_temperature'):
         savepath = 'fig/estimated_lh_parmas_{}.pdf'.format(model_name)
-        plot_inferred_params_posterior(model_summary_all, figsize=(7, 3.5), savepath=None)
+        plot_inferred_params_posterior(model_summary_all[:2], study_names=['Study I', 'Study II'], figsize=(7, 3.5), savepath=None)

@@ -1,18 +1,10 @@
 import numpy as np
 import pandas as pd
-import pystan
+from cmdstanpy import CmdStanModel
 import json
-import pickle
 import os.path
-from scipy.stats import multinomial
 import scipy.stats
 from scipy.stats.distributions import chi2
-from argparse import ArgumentParser
-
-
-parser = ArgumentParser()
-parser.add_argument('--do_compile', help="Recompile the STAN model.", action='store_true')
-args = parser.parse_args()
 
 
 def print_header(line):
@@ -75,8 +67,6 @@ def likelihood_ratio(llmin, llmax):
     return(2*(llmax-llmin))
 
 
-DO_COMPILE = args.do_compile # If False, then reload pickled models. Otherwise recompile models.
-
 # Load estimated prior
 pi_list = json.load(open('data/estimated_prior_from_norming_task.json'))
 pi_list = np.array(pi_list)
@@ -89,12 +79,7 @@ models = {}
 for model_tag in model_tags:
     model_name = model2name[model_tag]
     model_path = 'stan_model/{}.stan'.format(model_name)
-    pickle_file = 'stan_model/pkl/{}.pkl'.format(model_name)
-
-    # Compile the model
-    progress_message = 'Compile {} model.'.format(model_tag) if DO_COMPILE else 'Load {} pkl file.'.format(model_tag)
-    print(progress_message)
-    sm = build_model(model_path, pkl_file=pickle_file, do_compile=DO_COMPILE)
+    sm = CmdStanModel(stan_file=model_path)
     models[model_tag] = sm
 
 
@@ -143,16 +128,60 @@ for exp_name in exp_names:
 
     for k, model_tag in enumerate(model_tags):
         sm = models[model_tag]
-        mle_op = sm.optimizing(data=data, seed=1)
+        mle_op = sm.optimize(data=data, seed=1)
 
         print('log likelihood evaluated at the MLE of the parameters for {} is:\n'.format(model2name[model_tag]), 
-              mle_op['log_lh'], get_log_lh(data['obs_e_prob'], mle_op['inferred_e_prob'], mle_op['sigma']))
+              mle_op.optimized_params_dict['log_lh'], get_log_lh(data['obs_e_prob'], mle_op.stan_variables()['inferred_e_prob'], mle_op.optimized_params_dict['sigma']))
 
-        mle_op_all[exp_name][model_tag] = mle_op
+        mle_op_all[exp_name][model_tag] = mle_op.optimized_params_dict
         print()
 
-# Print out log likelihood at the MLE estimation for each model
+
+# Maximum likelihood estimation for all the models using combined data
+mle_op_all['combined'] = {}
+observed_all = np.zeros((len(items), len(conditions), len(e_types)))
 for exp_name in exp_names:
+    # Load data frame
+    df = pd.read_csv('data/{}_df_target_mismatch_resolving_trials.csv'.format(exp_name), index_col=0)
+
+    # Get edit type counts for each condition of every item
+    for row_idx, row in df.iterrows():
+        item = row['item']
+        trial_condition = row['trial_condition']
+        e_type = row['e_type']
+        observed_all[item2index[item], condition2index[trial_condition], e_type2index[e_type]] += 1
+
+normalized_observed_all = []
+
+for n in range(len(observed_all)):
+    normalized_observed_all.append([])
+    for k in range(4):
+        normalized_observed_all[n].append(normalize(observed_all[n][k]))
+
+normalized_observed_all = np.array(normalized_observed_all)
+
+data = {
+  "N": 56,
+  "K": 4,
+  "J": 4,
+  "obs_e_prob": normalized_observed_all,
+  "prior": np.array(pi_list[items])
+}
+
+for k, model_tag in enumerate(model_tags):
+    sm = models[model_tag]
+    mle_op = sm.optimize(data=data, seed=1)
+
+    print('log likelihood evaluated at the MLE of the parameters for {} is:\n'.format(model2name[model_tag]), 
+          mle_op.optimized_params_dict['log_lh'], get_log_lh(data['obs_e_prob'], mle_op.stan_variables()['inferred_e_prob'], mle_op.optimized_params_dict['sigma']))
+
+    mle_op_all['combined'][model_tag] = mle_op.optimized_params_dict
+    print()
+
+
+
+# Print out log likelihood at the MLE estimation for each model
+for exp_name in exp_names+['combined']:
     print_header('Estimated on data from {}'.format(exp_name))
     for k, model_tag in enumerate(model_tags):
         print('log likelihood evaluated at the MLE of the {} model: {}'.format(
@@ -162,7 +191,7 @@ for exp_name in exp_names:
 
 # Run likelihood ratio test between context-insensitive and full models
 print_header('Likelihood ratio test results')
-for exp_name in exp_names:
+for exp_name in exp_names+['combined']:
     LR = likelihood_ratio(mle_op_all[exp_name]['context-general_lh']['log_lh'], mle_op_all[exp_name]['full']['log_lh'])
     p = chi2.sf(LR, 12-3) # L2 has 12-3 DoF more than L1
     print('Likelihood ratio test between context-general and full models on {} data'.format(exp_name))

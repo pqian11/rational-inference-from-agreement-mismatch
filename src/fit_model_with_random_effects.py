@@ -1,39 +1,16 @@
 import numpy as np
-import pystan
+from cmdstanpy import CmdStanModel
 import arviz
 import json
-import pickle
 import pandas as pd
 import os.path
-from scipy.stats import multinomial
+import time
 from argparse import ArgumentParser
 
 parser = ArgumentParser()
 parser.add_argument("-m", "--model", help="Name of the model to be fitted.", type=str)
-parser.add_argument('--do_compile', help="Recompile the STAN model.", action='store_true')
 args = parser.parse_args()
 
-
-def normalize(scores):
-    total = np.sum(scores)
-    return list(np.array(scores)/total)
-
-
-def build_model(path, pkl_file=None, do_compile=True):
-    if do_compile:
-        sm = pystan.StanModel(file=path)
-        if pkl_file is not None:
-            with open(pkl_file, 'wb') as f:
-                pickle.dump(sm, f)
-    else:
-        if os.path.isfile(pkl_file):
-            sm = pickle.load(open(pkl_file, 'rb'))
-        else:
-            raise FileNotFoundError
-    return sm
-
-
-DO_COMPILE = args.do_compile # If False, then reload pickled models. Otherwise recompile models.
 
 # Load estimated prior
 pi_list = json.load(open('data/estimated_prior_from_norming_task.json'))
@@ -46,11 +23,9 @@ model2name = {"prior-only":"bayesian_model_prior-only_temperature_with_random_ef
                 "full":"bayesian_model_full_temperature_with_random_effect"}
 model_name = model2name[args.model]
 model_path = 'stan_model/{}.stan'.format(model_name)
-pickle_file = 'stan_model/pkl/{}.pkl'.format(model_name)
 
-# Compile the model
-sm = build_model(model_path, pkl_file=pickle_file, do_compile=DO_COMPILE)
-
+# Build the model
+sm = CmdStanModel(stan_file=model_path)
 
 exp_names = ['exp1', 'exp2']
 
@@ -87,11 +62,14 @@ for exp_name in exp_names:
       "lambda": 0.1
     }
 
-    fit = sm.sampling(data=data, chains=4, iter=10000, warmup=2000, seed=10, control=dict(max_treedepth=15))
-    # print(fit)
 
-    pystan.check_hmc_diagnostics(fit)
+    fit = sm.sample(data=data, chains=4, iter_warmup=2000, iter_sampling=8000, refresh=1000, show_progress=True, show_console=True, seed=10)
 
-    model_fit = arviz.from_pystan(fit)
+    fit.save_csvfiles(dir="stan_model/mcmc_output/{}".format(exp_name))
+
+    start_time = time.time()
+    model_fit = arviz.from_cmdstanpy(fit)
+    print('Converting Stan fit to inference object takes', (time.time() - start_time), 's')
+
     savepath = 'stan_model/model_fit/{exp_name}_{model_name}_model_fit.nc'.format(exp_name=exp_name, model_name=model_name)
     arviz.to_netcdf(model_fit, savepath)

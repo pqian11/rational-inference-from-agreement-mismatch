@@ -166,6 +166,69 @@ def plot_verb_correction_freq_against_prior_all_conditions(obs_e_freqs, prior_pr
     return
 
 
+def plot_verb_correction_freq_against_prior_all_conditions_binned(obs_e_freqs, prior_probs, items, n_bin=10, figsize=(4,4), title=None, savepath=None):
+   # Plot all conditions in one figure
+    condition_names = ['SSP', 'SPP', 'PSS', 'PPS']
+    n_cond = len(condition_names)
+
+    fig = plt.figure(figsize=figsize)
+    ax = plt.gca()
+
+    cond2data = {}
+    for k in range(n_cond):
+        cond2data[k] = {'xs':[], 'ys':[]}
+
+    xs = []
+    ys = []
+
+    for n, index in enumerate(items):
+        for k in range(n_cond):
+            observed_e_freq = obs_e_freqs[n][k]
+            prior_prob = prior_probs[n][k]
+                    
+            cond2data[k]['xs'].append(prior_prob[1])
+            cond2data[k]['ys'].append(observed_e_freq[1])
+
+            ax.plot(prior_prob[1], observed_e_freq[1], 'o', alpha=0.9, mfc='none', color='gainsboro', markersize=6)
+
+            xs.append(prior_prob[1])
+            ys.append(observed_e_freq[1])
+
+    binned_means, bin_edges, bin_numbers = scipy.stats.binned_statistic(xs, ys, statistic='mean', bins=n_bin)
+    # print(binned_means)
+    # print(bin_numbers)
+    for bin_idx in range(n_bin):
+        x_bin = [x for i, x in enumerate(xs) if bin_numbers[i] == bin_idx+1]
+        x_bin_count = len(x_bin)
+        if x_bin_count == 0:
+            print(binned_means[bin_idx])
+            assert np.isnan(binned_means[bin_idx])
+            continue
+        x_bin_mean = np.mean(x_bin)
+        y_bin_mean = binned_means[bin_idx]
+        y_bin_err = scipy.stats.sem([ys[i] for i, x in enumerate(xs) if bin_numbers[i] == bin_idx+1])*1.96
+        y_bin_err_low = np.min([y_bin_err, y_bin_mean - 0])
+        y_bin_err_up = np.min([y_bin_err, 1 - y_bin_mean])
+        ax.errorbar(x_bin_mean, y_bin_mean, fmt='o', alpha=1, mfc='k', color='k', markersize=6, yerr=[[y_bin_err_low], [y_bin_err_up]])
+
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    if title:
+        ax.set_title(title)
+
+    rho, p_value = scipy.stats.spearmanr(xs, ys)
+    sig_level_stars = get_significance_level_stars(p_value)
+    ax.text(0.7, 0.05, r'$\rho_{{all}}=${:.3f}{}'.format(rho, sig_level_stars), transform=ax.transAxes)
+
+    plt.xlabel('Prior of the observed subject phrase')
+    plt.ylabel('Verb correction frequency')
+
+    if savepath:
+        plt.savefig(savepath, bbox_inches='tight')
+    plt.show()
+    return
+
+
 # Load estimated prior
 pi_list = json.load(open('data/estimated_prior_from_norming_task.json'))
 pi_list = np.array(pi_list)
@@ -223,6 +286,29 @@ for exp_idx, exp_name in enumerate(exp_names):
 
     plot_verb_correction_freq_against_prior_panel(obs_e_freqs, prior_probs, items, study_index[exp_idx], savepath='fig/{}_verb_correction_freq_prior_panel.pdf'.format(exp_name))
     plot_verb_correction_freq_against_prior_all_conditions(obs_e_freqs, prior_probs, items, study_index[exp_idx], savepath='fig/{}_verb_correction_freq_prior.pdf'.format(exp_name))
+    plot_verb_correction_freq_against_prior_all_conditions_binned(obs_e_freqs, prior_probs, items, 
+        title=r"$\bf{Study}$"+' '+r"$\bf{"+"{}".format(study_index[exp_idx])+"}$", savepath='fig/{}_verb_correction_freq_prior_binned.pdf'.format(exp_name))
 
+obs_e_freqs = []
+prior_probs = []
 
+for n, index in enumerate(items):
+    obs_e_freqs.append([])
+    prior_probs.append([])
+    for k in range(len(conditions)):
+        observed_e_freq = normalize(observed_freqs['exp1'][n, k] + observed_freqs['exp2'][n, k])
+        
+        if k == 0:
+            prior_prob = [pi_list[index][2], pi_list[index][k], pi_list[index][3], pi_list[index][1]]
+        elif k == 1:
+            prior_prob = [pi_list[index][3], pi_list[index][k], pi_list[index][2], pi_list[index][0]]
+        elif k == 2:
+            prior_prob = [pi_list[index][0], pi_list[index][k], pi_list[index][1], pi_list[index][3]]    
+        else:
+            prior_prob = [pi_list[index][1], pi_list[index][k], pi_list[index][0], pi_list[index][2]]
 
+        obs_e_freqs[n].append(observed_e_freq)
+        prior_probs[n].append(prior_prob)
+plot_verb_correction_freq_against_prior_all_conditions(obs_e_freqs, prior_probs, items, 'I&II', savepath='fig/{}_verb_correction_freq_prior.pdf'.format('exp_combined'))
+plot_verb_correction_freq_against_prior_all_conditions_binned(obs_e_freqs, prior_probs, items, 
+    title=None, savepath='fig/{}_verb_correction_freq_prior_binned.pdf'.format('exp_combined'))
