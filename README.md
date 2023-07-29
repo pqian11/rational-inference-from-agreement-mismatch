@@ -78,3 +78,30 @@ python src/plot_error_lh.py
 
 ## Statistical tests
 `R_script` folder contains `R` script for mixed-effect regression analysis.
+
+
+## Supplemental analyses
+Use pretrained language model (GPT-2) to estimate the prior probabilities of the intend messages (require installation of `transformers` package.
+```
+python script/get_gpt2_prior_norm.py
+```
+
+Estimate likelihood parameters in the Bayesian model using human data from the error correction studies together with prior probabilities derived from GPT-2. Models are fitted on data from two studies respectively. `${MODEL_TYPE}` can take the value of `prior-only`, `lh-only`, `context-general_lh` and `full` , which corresponds to different versions of the ablated models as well as the full model described in the paper.
+```
+python src/fit_model_with_random_effects_and_gpt2_norm.py -m ${MODEL}
+```
+
+Fit models with human behavioral data combined from Study I&II as well as prior probabilities derived from GPT-2.
+```
+python script/fit_model_with_random_effects_and_gpt2_norm_on_combined_data.py -m ${MODEL}
+```
+
+Plot a visual comparison between human-normed priors and priors derived from GPT-2.
+```
+python script/compare_human_lm_priors.py
+```
+
+Run a random split-half analysis on combined error correction data from Study I and II. The combined data is randomly split into two halves multiple times. For each random split, we compute the Mean Squared Error and Spearman correlation coefficient between error correction frequency estimated from each half. Then we plot the distribution of MSE and Spearman correlation coefficients across many random splits.
+```
+python script/random_split_half_analysis.py
+```
