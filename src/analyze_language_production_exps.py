@@ -42,6 +42,20 @@ def get_error_type_count_from_Ryskin_et_al_data(fpath):
     return error_freq_count_by_condition
 
 
+def get_condition_freq_count_from_Ryskin_et_al_data(fpath):  
+    conditions = ['SS_', 'SP_', 'PS_', 'PP_']
+
+    freq_count_by_condition = {}
+    for cond in conditions:
+        freq_count_by_condition[cond] = 0
+
+    df = pd.read_csv(fpath)
+    for row_idx, row in df.iterrows():
+        cond = extract_cond_type(row['Condition'])
+        freq_count_by_condition[cond] += 1
+    return freq_count_by_condition
+
+
 def flip_feature(x):
     if x == 'S':
         return 'P'
@@ -75,6 +89,11 @@ pprint_error_count_by_condition(e_dict)
 print()
 json.dump(e_dict, open('data/ryskin_et_al_exp1a_error_count.json', 'w'), indent=4)
 
+cond_freq_dict = get_condition_freq_count_from_Ryskin_et_al_data(fpath)
+print('Overall error rates')
+print('{} {} {} {}'.format(*['{} {:.2f}%({:d}/{:d})'.format(cond, 100*np.sum([e_dict[cond][e_type] for e_type in e_types])/cond_freq_dict[cond], np.sum([e_dict[cond][e_type] for e_type in e_types]), cond_freq_dict[cond],) for cond in conditions]))
+print()
+
 
 # Analyze experiments from Kandel et al. (2022)
 e_map = {
@@ -89,6 +108,8 @@ for exp_name in exp_names:
     path = 'data/Kandel_et_al/{}_data.csv'.format(exp_name)
     df = pd.read_csv(path)
 
+    cond_freq_dict = dict([(cond, 0) for cond in conditions])
+
     e_dict = {}
     for cond in conditions:
         e_dict[cond] = {}
@@ -99,6 +120,8 @@ for exp_name in exp_names:
         cond = row['item'][:2]+'_'
         response = row['response_structure']        
         response = get_intent_before_self_revision(response, row['subj_revision'], row['loc_revision'], row['verb_revision'])    
+
+        cond_freq_dict[cond] += 1
         
         if response[-1] == response[0]:
             continue
@@ -111,3 +134,6 @@ for exp_name in exp_names:
     print()
     json.dump(e_dict, open('data/kandel_et_al_{}_error_count.json'.format(exp_name), 'w'), indent=4)
 
+    print('Overall error rates')
+    print('{} {} {} {}'.format(*['{} {:.2f}%({:d}/{:d})'.format(cond, 100*np.sum([e_dict[cond][e_type] for e_type in e_types])/cond_freq_dict[cond], np.sum([e_dict[cond][e_type] for e_type in e_types]), cond_freq_dict[cond],) for cond in conditions]))
+    print()

@@ -73,7 +73,6 @@ np.random.seed(10)
 
 mse_all = []
 rho_all = []
-r2_all = []
 
 i = 0
 
@@ -105,11 +104,9 @@ while i < 3000:
     
     mse_all.append(mse)
     rho_all.append(rho)
-    r2_all.append(r2)
     
     i += 1
     
 
 plot_hist(mse_all, 'MSE', 'Distribution of MSE', n_bin=20, savefig='fig/dist_of_mse_from_random_half_split_of_combined_data.pdf')  
-plot_hist(rho_all, r'$\rho$', r'Distribution of $\rho$', n_bin=20, savefig='fig/dist_of_spearmanr_from_random_half_split_of_combined_data.pdf')  
-plot_hist(r2_all, r'$R^2$', n_bin=20)  
+plot_hist(rho_all, r'$\rho$', r'Distribution of $\rho$', n_bin=20, savefig='fig/dist_of_spearmanr_from_random_half_split_of_combined_data.pdf')
