@@ -54,7 +54,8 @@ def plot_lh_params_all(summaries, figsize=(10, 2), subplot_titles=None, savepath
     # Generate ticklabels
     ticklabels = []
     for k in range(4):
-        ticklabels += ['{} | {}'.format(e_type,condition_names[k]) for e_type in e_types]        
+        # ticklabels += ['{} | {}'.format(e_type,condition_names[k]) for e_type in e_types]
+        ticklabels += ['{}'.format(e_type) for e_type in e_types]     
         
     if subplot_titles:
         assert len(subplot_titles) == len(summaries)
@@ -75,15 +76,23 @@ def plot_lh_params_all(summaries, figsize=(10, 2), subplot_titles=None, savepath
         ax.set_yticks(np.arange(16))
         if ax_idx == 0:
             ax.set_yticklabels(ticklabels[::-1])
-        ax.set_xlabel('Error Frequency')
+        ax.set_xlabel('Error likelihood')
         if subplot_titles:
             ax.set_title(subplot_titles[ax_idx])
 
         if ax_idx == 0:
-            ax.annotate('Comprehension', xy=(1, 1.28), xytext=(1, 1.28), xycoords='axes fraction', 
+            ax.annotate('Error correction', xy=(1, 1.28), xytext=(1, 1.28), xycoords='axes fraction', 
             ha='center', va='bottom',
             bbox=dict(boxstyle='square', fc='white', lw=0),
             arrowprops=dict(arrowstyle='-[, widthB=7, lengthB=1'))
+
+            for k in range(4):
+                ax.annotate(condition_names[k], xy=(-0.6, 0.86-0.245*k), xytext=(-0.66, 0.86-0.245*k), xycoords='axes fraction',
+                ha='right', va='center', rotation=90,
+                bbox=dict(boxstyle='square', fc='white', lw=0),
+                arrowprops=dict(arrowstyle='-[, widthB=1.8, lengthB=0.3', linewidth=0.75))
+
+            ax.text(-0.83, 0.5, 'Error type', rotation=90, ha='center', va='center', transform=ax.transAxes)
 
         if ax_idx == 3:
             ax.annotate('Production', xy=(0.5, 1.28), xytext=(0.5, 1.28), xycoords='axes fraction', 
@@ -122,7 +131,8 @@ def plot_lh_params_for_model_on_combined_data(summaries, figsize=(4, 2), subplot
     # Generate ticklabels
     ticklabels = []
     for k in range(4):
-        ticklabels += ['{} | {}'.format(e_type,condition_names[k]) for e_type in e_types]        
+        # ticklabels += ['{} | {}'.format(e_type,condition_names[k]) for e_type in e_types] 
+        ticklabels += ['{}'.format(e_type) for e_type in e_types]
         
     if subplot_titles:
         assert len(subplot_titles) == len(summaries)
@@ -136,23 +146,32 @@ def plot_lh_params_for_model_on_combined_data(summaries, figsize=(4, 2), subplot
                         xerr=[[item[1] for item in lh_params_ci[k]], 
                                            [item[2] for item in lh_params_ci[k]]], label=condition_names[k]
                                       )
-            ax.set_xlim(0, 1.05)
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
+        ax.set_xlim(0, 1.05)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
             
         ax.set_yticks(np.arange(16))
         if ax_idx == 0:
             ax.set_yticklabels(ticklabels[::-1])
-        ax.set_xlabel('Error Frequency')
+        ax.set_xlabel('Error likelihood')
         if subplot_titles:
             ax.set_title(subplot_titles[ax_idx])
+
+        if ax_idx == 0:
+            for k in range(4):
+                ax.annotate(condition_names[k], xy=(-0.42, 0.86-0.245*k), xytext=(-0.48, 0.86-0.245*k), xycoords='axes fraction',
+                ha='right', va='center', rotation=90,
+                bbox=dict(boxstyle='square', fc='white', lw=0),
+                arrowprops=dict(arrowstyle='-[, widthB=1.8, lengthB=0.3', linewidth=0.75))
+
+            ax.text(-0.65, 0.5, 'Error type', rotation=90, ha='center', va='center', transform=ax.transAxes)
 
     condition_legend_elements = []
     for i, condition in enumerate(condition_names):
         line = mlines.Line2D([], [], color=plt.cm.tab10(i), marker='o', label=condition, mfc='white')
         condition_legend_elements.append(line)
     legend = fig.legend(handles=condition_legend_elements, ncol=1, loc='center left', bbox_to_anchor=(0.92, 0.5))
-            
+ 
     if savepath:
         plt.savefig(savepath, bbox_inches='tight')
     plt.show()

@@ -113,7 +113,7 @@ def plot_verb_correction_freq_against_prior_panel(obs_e_freqs, prior_probs, item
     return
 
 
-def plot_verb_correction_freq_against_prior_all_conditions(obs_e_freqs, prior_probs, items, study_index, figsize=(4,4), savepath=None):
+def plot_verb_correction_freq_against_prior_all_conditions(obs_e_freqs, prior_probs, items, figsize=(4,4), title=None, savepath=None):
    # Plot all conditions in one figure
     condition_names = ['SSP', 'SPP', 'PSS', 'PPS']
     n_cond = len(condition_names)
@@ -151,7 +151,8 @@ def plot_verb_correction_freq_against_prior_all_conditions(obs_e_freqs, prior_pr
 
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
-    ax.set_title(r"$\bf{Study}$"+' '+r"$\bf{"+"{}".format(study_index)+"}$")
+    if title:
+        ax.set_title(title)
 
     rho, p_value = scipy.stats.spearmanr(xs, ys)
     sig_level_stars = get_significance_level_stars(p_value)
@@ -285,7 +286,8 @@ for exp_idx, exp_name in enumerate(exp_names):
             prior_probs[n].append(prior_prob)
 
     plot_verb_correction_freq_against_prior_panel(obs_e_freqs, prior_probs, items, study_index[exp_idx], savepath='fig/{}_verb_correction_freq_prior_panel.pdf'.format(exp_name))
-    plot_verb_correction_freq_against_prior_all_conditions(obs_e_freqs, prior_probs, items, study_index[exp_idx], savepath='fig/{}_verb_correction_freq_prior.pdf'.format(exp_name))
+    plot_verb_correction_freq_against_prior_all_conditions(obs_e_freqs, prior_probs, items, 
+        title=r"$\bf{Study}$"+' '+r"$\bf{"+"{}".format(study_index[exp_idx])+"}$", savepath='fig/{}_verb_correction_freq_prior.pdf'.format(exp_name))
     plot_verb_correction_freq_against_prior_all_conditions_binned(obs_e_freqs, prior_probs, items, 
         title=r"$\bf{Study}$"+' '+r"$\bf{"+"{}".format(study_index[exp_idx])+"}$", savepath='fig/{}_verb_correction_freq_prior_binned.pdf'.format(exp_name))
 
@@ -309,6 +311,7 @@ for n, index in enumerate(items):
 
         obs_e_freqs[n].append(observed_e_freq)
         prior_probs[n].append(prior_prob)
-plot_verb_correction_freq_against_prior_all_conditions(obs_e_freqs, prior_probs, items, 'I&II', savepath='fig/{}_verb_correction_freq_prior.pdf'.format('exp_combined'))
+plot_verb_correction_freq_against_prior_all_conditions(obs_e_freqs, prior_probs, items, 
+    title=None, savepath='fig/{}_verb_correction_freq_prior.pdf'.format('exp_combined'))
 plot_verb_correction_freq_against_prior_all_conditions_binned(obs_e_freqs, prior_probs, items, 
     title=None, savepath='fig/{}_verb_correction_freq_prior_binned.pdf'.format('exp_combined'))

@@ -89,6 +89,7 @@ def plot_model_human_comparison_across_two_studies(model_fit_all, observed_freqs
 
     fig.text(0.5, 0.035, 'Model correction preference', ha='center', fontsize=12)
 
+    legends = []
     ax = fig.add_subplot(111)
     ax.set_xticklabels([])
     ax.set_yticklabels([])
@@ -98,15 +99,18 @@ def plot_model_human_comparison_across_two_studies(model_fit_all, observed_freqs
         e_type_legend_elements.append(Line2D([0], [0], marker=m_shapes[e_type_idx], mfc='none', label=e_type, linestyle='None', markersize=markersize, color='gray'))
     legend = plt.legend(handles=e_type_legend_elements, loc='upper left', ncol=4, bbox_to_anchor=(0.45, -0.12), title='Type of correction/inferred error')
     ax.add_artist(legend)
+    legends.append(legend)
+
     condition_legend_elements = []
     for cond_idx, cond in enumerate(['SSP', 'SPP', 'PSS', 'PPS']):
         patch = mpatches.Patch(color=colors[cond_idx], label=cond)
         condition_legend_elements.append(patch)
     legend = plt.legend(handles=condition_legend_elements, ncol=4, loc='upper left', bbox_to_anchor=(0.05, -0.12), title='Condition')
     ax.add_artist(legend)
+    legends.append(legend)
 
     if savepath:
-        plt.savefig(savepath, bbox_inches='tight')
+        plt.savefig(savepath, bbox_extra_artists=legends, bbox_inches='tight')
     plt.show()   
 
 
