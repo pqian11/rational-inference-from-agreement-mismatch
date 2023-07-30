@@ -1,4 +1,4 @@
-# Rational Inference from Agreement Mismatch
+# Comprehenders’ Error Correction Mechanisms are Finely Calibrated to Language Production Statistics
 
 This repository accompanies a study of how humans correct subject-verb number agreement mismatch in English.
 
