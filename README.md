@@ -8,7 +8,7 @@ Use `stan_env.yml` to install the `conda` environment. Run the following code to
 import nltk
 nltk.download('punkt')
 ```
-Download the data folder and put it in the root of the repository. Create the following directory structure from the root folder:
+Download the [data folder](https://osf.io/6hq8e/) and put it in the root of the repository. Create the following directory structure from the root folder:
 ```
 mkdir -p fig
 mkdir -p stan_model/model_fit
